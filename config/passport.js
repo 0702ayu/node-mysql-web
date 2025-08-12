@@ -6,6 +6,10 @@ const User = require("../models/user");
 const cookieSession = require("cookie-session");
 const secret = "secretCuisine123";
 
+const passport = require('passport');
+const LocalStrategy = require('passport-local').Strategy;
+const User = require('../models/User'); // ユーザーモデルのパスを適宜修正してください
+
 module.exports = function (app) {
   passport.serializeUser(function (user, done) {
     done(null, user.id);
@@ -57,3 +61,31 @@ module.exports = function (app) {
 
   app.use(passport.session());
 };
+
+
+
+// ユーザーのシリアライズ
+passport.serializeUser((user, done) => {
+  done(null, user.id);
+});
+
+// ユーザーのデシリアライズ
+passport.deserializeUser((id, done) => {
+  User.findById(id, (err, user) => {
+    done(err, user);
+  });
+});
+
+// ローカルストラテジーの設定
+passport.use(new LocalStrategy(
+  (username, password, done) => {
+    User.findOne({ username: username }, (err, user) => {
+      if (err) { return done(err); }
+      if (!user) { return done(null, false, { message: 'Incorrect username.' }); }
+      if (!user.verifyPassword(password)) { return done(null, false, { message: 'Incorrect password.' }); }
+      return done(null, user);
+    });
+  }
+));
+
+module.exports = passport;

@@ -2,9 +2,15 @@ const express = require('express');
 const router = express.Router();
 const knex = require('../db/knex');
 
+const express = require('express');
+const router = express.Router();
+
+// Import calendar routes
+const calendarRoutes = require('../calendar/calendarRoutes');
+
+
 router.get('/', function (req, res, next) {
-  const userId = req.session.userid;
-  const isAuth = Boolean(userId);
+  const isAuth = req.isAuthenticated();
   knex("tasks")
     .select("*")
     .then(function (results) {
@@ -19,13 +25,13 @@ router.get('/', function (req, res, next) {
       res.render('index', {
         title: 'ToDo App',
         isAuth: isAuth,
+        errorMessage: [err.sqlMessage],
       });
     });
 });
 
 router.post('/', function (req, res, next) {
-  const userId = req.session.userid;
-  const isAuth = Boolean(userId);
+  const isAuth = req.isAuthenticated();
   const todo = req.body.add;
   knex("tasks")
     .insert({user_id: 1, content: todo})
@@ -37,6 +43,7 @@ router.post('/', function (req, res, next) {
       res.render('index', {
         title: 'ToDo App',
         isAuth: isAuth,
+        errorMessage: [err.sqlMessage],
       });
     });
 });
@@ -44,5 +51,15 @@ router.post('/', function (req, res, next) {
 router.use('/signup', require('./signup'));
 router.use('/signin', require('./signin'));
 router.use('/logout', require('./logout'));
+
+const express = require('express');
+const router = express.Router();
+
+// Import calendar routes
+const calendarRoutes = require('../calendar/calendarRoutes');
+
+// Use calendar routes
+router.use('/calendar', calendarRoutes);
+
 
 module.exports = router;
